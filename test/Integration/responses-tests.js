@@ -874,4 +874,28 @@ lab.experiment('responses', () => {
     const isValid = await Validate.test(response.result);
     expect(isValid).to.be.true();
   });
+
+  lab.test('requests with optional parameter create 2 routes instead of one', async () => {
+    const routes = {
+      method: 'GET',
+      path: '/todo/{id?}',
+      options: {
+        handler: (request) => {
+          return request.params.id || 'Ohhh';
+        },
+        description: 'Test',
+        notes: 'Test notes',
+        tags: ['api'],
+        validate: {
+          params: Joi.object({
+            id: Joi.string().optional()
+          })
+        }
+      },
+    };
+
+    const server = await Helper.createServer({}, routes);
+    const response = await server.inject({ url: '/swagger.json' });
+    expect(Object.keys(response.result.paths).length).to.equal(2);
+  });
 });
